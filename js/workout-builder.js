@@ -21,7 +21,14 @@ function newSet() {
 }
 
 function newEntry(movementId) {
-  return { id: uid(), movementId, sets: [newSet()] };
+  const data = loadData();
+  const movement = data.movements.find((m) => m.id === movementId);
+  const defaults = movement?.defaultSets;
+  const sets =
+    defaults && defaults.length > 0
+      ? defaults.map((s) => ({ id: uid(), weight: s.weight, reps: s.reps }))
+      : [newSet()];
+  return { id: uid(), movementId, sets };
 }
 
 function newRound(previousRound) {

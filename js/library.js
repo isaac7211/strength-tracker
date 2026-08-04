@@ -2,6 +2,7 @@ import { loadData, saveData, uid } from "./storage.js";
 
 let editingId = null;
 let pendingDeleteId = null;
+let currentDefaultSets = [];
 
 const form = document.getElementById("movement-form");
 const idField = document.getElementById("movement-id");
@@ -11,6 +12,8 @@ const submitBtn = document.getElementById("movement-submit-btn");
 const cancelBtn = document.getElementById("movement-cancel-btn");
 const list = document.getElementById("movement-list");
 const emptyState = document.getElementById("movement-empty");
+const defaultSetsList = document.getElementById("default-sets-list");
+const addDefaultSetBtn = document.getElementById("add-default-set-btn");
 
 function render() {
   const data = loadData();
@@ -86,6 +89,12 @@ function startEdit(id) {
   idField.value = id;
   nameField.value = movement.name;
   notesField.value = movement.notes ?? "";
+  currentDefaultSets = (movement.defaultSets ?? []).map((s) => ({
+    id: uid(),
+    weight: s.weight,
+    reps: s.reps,
+  }));
+  renderDefaultSets();
   submitBtn.textContent = "Save changes";
   cancelBtn.classList.remove("hidden");
   nameField.focus();
@@ -95,9 +104,66 @@ function resetForm() {
   editingId = null;
   form.reset();
   idField.value = "";
+  currentDefaultSets = [];
+  renderDefaultSets();
   submitBtn.textContent = "Add movement";
   cancelBtn.classList.add("hidden");
 }
+
+function renderDefaultSets() {
+  defaultSetsList.innerHTML = "";
+  currentDefaultSets.forEach((set, index) => {
+    defaultSetsList.appendChild(renderDefaultSetRow(set, index));
+  });
+}
+
+function renderDefaultSetRow(set, index) {
+  const row = document.createElement("div");
+  row.className = "set-row";
+
+  const label = document.createElement("span");
+  label.className = "set-label";
+  label.textContent = `Set ${index + 1}`;
+  row.appendChild(label);
+
+  const weightInput = document.createElement("input");
+  weightInput.type = "number";
+  weightInput.inputMode = "decimal";
+  weightInput.placeholder = "Weight";
+  weightInput.value = set.weight;
+  weightInput.addEventListener("input", () => {
+    set.weight = weightInput.value;
+  });
+
+  const repsInput = document.createElement("input");
+  repsInput.type = "number";
+  repsInput.inputMode = "numeric";
+  repsInput.placeholder = "Reps";
+  repsInput.value = set.reps;
+  repsInput.addEventListener("input", () => {
+    set.reps = repsInput.value;
+  });
+
+  const removeBtn = document.createElement("button");
+  removeBtn.className = "icon-btn";
+  removeBtn.type = "button";
+  removeBtn.textContent = "×";
+  removeBtn.addEventListener("click", () => {
+    currentDefaultSets = currentDefaultSets.filter((s) => s.id !== set.id);
+    renderDefaultSets();
+  });
+
+  row.appendChild(weightInput);
+  row.appendChild(repsInput);
+  row.appendChild(removeBtn);
+  return row;
+}
+
+addDefaultSetBtn.addEventListener("click", () => {
+  const last = currentDefaultSets[currentDefaultSets.length - 1];
+  currentDefaultSets.push({ id: uid(), weight: last?.weight ?? "", reps: last?.reps ?? "" });
+  renderDefaultSets();
+});
 
 function deleteMovement(id) {
   const data = loadData();
@@ -120,9 +186,10 @@ form.addEventListener("submit", (e) => {
     if (movement) {
       movement.name = name;
       movement.notes = notes;
+      movement.defaultSets = currentDefaultSets;
     }
   } else {
-    data.movements.push({ id: uid(), name, notes });
+    data.movements.push({ id: uid(), name, notes, defaultSets: currentDefaultSets });
   }
   saveData(data);
   resetForm();

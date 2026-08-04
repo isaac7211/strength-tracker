@@ -36,7 +36,7 @@
     </p>
 
     <div class="workout-actions">
-      <button type="button" id="add-round-btn" class="secondary">+ Add round</button>
+      <button type="button" id="add-round-btn" class="secondary">Copy round</button>
       <button type="button" id="save-workout-btn">Save workout</button>
     </div>
     <p id="workout-save-msg" class="save-msg hidden"></p>
@@ -71,6 +71,12 @@
       <div class="field">
         <label for="movement-notes">Notes (optional)</label>
         <textarea id="movement-notes" rows="2" placeholder="e.g. 24kg, focus on hip snap"></textarea>
+      </div>
+      <div class="field">
+        <label>Default sets (optional)</label>
+        <p class="field-hint">Auto-fills sets when you add this movement to a workout round.</p>
+        <div id="default-sets-list" class="sets-list"></div>
+        <button type="button" id="add-default-set-btn" class="icon-btn add-set-btn">+ Add default set</button>
       </div>
       <div class="field-row">
         <button type="submit" id="movement-submit-btn">Add movement</button>
