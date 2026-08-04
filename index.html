@@ -46,6 +46,20 @@
     <div id="history-list-view">
       <ul id="history-list" class="history-list"></ul>
       <p id="history-empty" class="empty-state hidden">No workouts logged yet.</p>
+
+      <div class="data-section">
+        <h3>Backup &amp; restore</h3>
+        <p class="field-hint">
+          Backup saves your full movement library and workout history to a file.
+          Restore replaces your current data with a backup file.
+        </p>
+        <div class="field-row">
+          <button type="button" id="backup-btn" class="secondary">Backup my data</button>
+          <button type="button" id="restore-btn" class="secondary">Restore from backup</button>
+        </div>
+        <input type="file" id="restore-file-input" accept="application/json,.json" class="hidden">
+        <div id="restore-panel"></div>
+      </div>
     </div>
 
     <div id="history-detail-view" class="hidden">

@@ -1,4 +1,5 @@
 import "./library.js";
+import "./backup.js";
 import { refresh as refreshWorkoutBuilder } from "./workout-builder.js";
 import { refresh as refreshHistory } from "./history.js";
 

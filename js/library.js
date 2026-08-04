@@ -257,4 +257,9 @@ form.addEventListener("submit", (e) => {
 
 cancelBtn.addEventListener("click", resetForm);
 
+export function refresh() {
+  resetForm();
+  render();
+}
+
 render();
