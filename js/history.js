@@ -1,4 +1,4 @@
-import { loadData } from "./storage.js";
+import { loadData, saveData } from "./storage.js";
 import { loadAsTemplate } from "./workout-builder.js";
 
 const listView = document.getElementById("history-list-view");
@@ -10,8 +10,10 @@ const useTemplateBtn = document.getElementById("history-use-template-btn");
 const detailName = document.getElementById("history-detail-name");
 const detailDate = document.getElementById("history-detail-date");
 const detailRounds = document.getElementById("history-detail-rounds");
+const deleteSection = document.getElementById("history-delete-section");
 
 let currentWorkout = null;
+let deleteState = "idle"; // "idle" | "confirm"
 
 function formatDate(value) {
   const d = new Date(value);
@@ -68,6 +70,8 @@ function showDetail(workoutId) {
   const workout = data.workouts.find((w) => w.id === workoutId);
   if (!workout) return;
   currentWorkout = workout;
+  deleteState = "idle";
+  renderDeleteSection();
 
   detailName.textContent = workout.name;
   detailDate.textContent = formatDate(workout.date);
@@ -103,6 +107,58 @@ function showDetail(workoutId) {
 
   listView.classList.add("hidden");
   detailView.classList.remove("hidden");
+}
+
+function renderDeleteSection() {
+  deleteSection.innerHTML = "";
+
+  if (deleteState === "confirm") {
+    const warning = document.createElement("p");
+    warning.className = "delete-warning";
+    warning.textContent = "Are you sure? This can't be undone.";
+    deleteSection.appendChild(warning);
+
+    const row = document.createElement("div");
+    row.className = "field-row";
+    const cancelDeleteBtn = document.createElement("button");
+    cancelDeleteBtn.type = "button";
+    cancelDeleteBtn.className = "secondary";
+    cancelDeleteBtn.textContent = "Cancel";
+    cancelDeleteBtn.addEventListener("click", () => {
+      deleteState = "idle";
+      renderDeleteSection();
+    });
+    const confirmBtn = document.createElement("button");
+    confirmBtn.type = "button";
+    confirmBtn.className = "danger";
+    confirmBtn.textContent = "Delete workout";
+    confirmBtn.addEventListener("click", confirmDeleteWorkout);
+    row.appendChild(cancelDeleteBtn);
+    row.appendChild(confirmBtn);
+    deleteSection.appendChild(row);
+  } else {
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "danger";
+    deleteBtn.textContent = "Delete workout";
+    deleteBtn.addEventListener("click", () => {
+      deleteState = "confirm";
+      renderDeleteSection();
+    });
+    deleteSection.appendChild(deleteBtn);
+  }
+}
+
+function confirmDeleteWorkout() {
+  if (!currentWorkout) return;
+  const data = loadData();
+  data.workouts = data.workouts.filter((w) => w.id !== currentWorkout.id);
+  saveData(data);
+  currentWorkout = null;
+  deleteState = "idle";
+  detailView.classList.add("hidden");
+  listView.classList.remove("hidden");
+  renderList();
 }
 
 backBtn.addEventListener("click", () => {

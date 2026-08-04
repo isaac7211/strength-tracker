@@ -1,8 +1,9 @@
 import { loadData, saveData, uid } from "./storage.js";
 
 let editingId = null;
-let pendingDeleteId = null;
 let currentDefaultSets = [];
+let deleteState = "idle"; // "idle" | "confirm" | "blocked"
+let blockedCount = 0;
 
 const form = document.getElementById("movement-form");
 const idField = document.getElementById("movement-id");
@@ -14,6 +15,7 @@ const list = document.getElementById("movement-list");
 const emptyState = document.getElementById("movement-empty");
 const defaultSetsList = document.getElementById("default-sets-list");
 const addDefaultSetBtn = document.getElementById("add-default-set-btn");
+const deleteSection = document.getElementById("movement-delete-section");
 
 function render() {
   const data = loadData();
@@ -45,35 +47,11 @@ function render() {
     const actions = document.createElement("div");
     actions.className = "actions";
 
-    if (pendingDeleteId === movement.id) {
-      const confirmBtn = document.createElement("button");
-      confirmBtn.className = "danger";
-      confirmBtn.textContent = "Confirm delete";
-      confirmBtn.addEventListener("click", () => deleteMovement(movement.id));
-      const cancelDeleteBtn = document.createElement("button");
-      cancelDeleteBtn.className = "icon-btn";
-      cancelDeleteBtn.textContent = "Cancel";
-      cancelDeleteBtn.addEventListener("click", () => {
-        pendingDeleteId = null;
-        render();
-      });
-      actions.appendChild(cancelDeleteBtn);
-      actions.appendChild(confirmBtn);
-    } else {
-      const editBtn = document.createElement("button");
-      editBtn.className = "icon-btn";
-      editBtn.textContent = "Edit";
-      editBtn.addEventListener("click", () => startEdit(movement.id));
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "danger";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", () => {
-        pendingDeleteId = movement.id;
-        render();
-      });
-      actions.appendChild(editBtn);
-      actions.appendChild(deleteBtn);
-    }
+    const editBtn = document.createElement("button");
+    editBtn.className = "icon-btn";
+    editBtn.textContent = "Edit";
+    editBtn.addEventListener("click", () => startEdit(movement.id));
+    actions.appendChild(editBtn);
 
     li.appendChild(info);
     li.appendChild(actions);
@@ -97,6 +75,8 @@ function startEdit(id) {
   renderDefaultSets();
   submitBtn.textContent = "Save changes";
   cancelBtn.classList.remove("hidden");
+  deleteState = "idle";
+  renderDeleteSection();
   nameField.focus();
 }
 
@@ -108,6 +88,86 @@ function resetForm() {
   renderDefaultSets();
   submitBtn.textContent = "Add movement";
   cancelBtn.classList.add("hidden");
+  deleteState = "idle";
+  renderDeleteSection();
+}
+
+function countWorkoutsUsingMovement(data, movementId) {
+  return data.workouts.filter((w) =>
+    w.rounds.some((round) => round.entries.some((entry) => entry.movementId === movementId))
+  ).length;
+}
+
+function renderDeleteSection() {
+  deleteSection.innerHTML = "";
+
+  if (!editingId) {
+    deleteSection.classList.add("hidden");
+    return;
+  }
+  deleteSection.classList.remove("hidden");
+
+  if (deleteState === "confirm") {
+    const warning = document.createElement("p");
+    warning.className = "delete-warning";
+    warning.textContent = "Are you sure? This can't be undone.";
+    deleteSection.appendChild(warning);
+
+    const row = document.createElement("div");
+    row.className = "field-row";
+    const cancelDeleteBtn = document.createElement("button");
+    cancelDeleteBtn.type = "button";
+    cancelDeleteBtn.className = "secondary";
+    cancelDeleteBtn.textContent = "Cancel";
+    cancelDeleteBtn.addEventListener("click", () => {
+      deleteState = "idle";
+      renderDeleteSection();
+    });
+    const confirmBtn = document.createElement("button");
+    confirmBtn.type = "button";
+    confirmBtn.className = "danger";
+    confirmBtn.textContent = "Delete movement";
+    confirmBtn.addEventListener("click", confirmDeleteMovement);
+    row.appendChild(cancelDeleteBtn);
+    row.appendChild(confirmBtn);
+    deleteSection.appendChild(row);
+  } else if (deleteState === "blocked") {
+    const warning = document.createElement("p");
+    warning.className = "delete-warning";
+    warning.textContent = `Can't delete — used in ${blockedCount} saved workout${
+      blockedCount === 1 ? "" : "s"
+    }. Remove it from ${blockedCount === 1 ? "that workout" : "those workouts"} first.`;
+    deleteSection.appendChild(warning);
+
+    const okBtn = document.createElement("button");
+    okBtn.type = "button";
+    okBtn.className = "secondary";
+    okBtn.textContent = "OK";
+    okBtn.addEventListener("click", () => {
+      deleteState = "idle";
+      renderDeleteSection();
+    });
+    deleteSection.appendChild(okBtn);
+  } else {
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.className = "danger";
+    deleteBtn.textContent = "Delete movement";
+    deleteBtn.addEventListener("click", startDelete);
+    deleteSection.appendChild(deleteBtn);
+  }
+}
+
+function startDelete() {
+  const data = loadData();
+  const count = countWorkoutsUsingMovement(data, editingId);
+  if (count > 0) {
+    deleteState = "blocked";
+    blockedCount = count;
+  } else {
+    deleteState = "confirm";
+  }
+  renderDeleteSection();
 }
 
 function renderDefaultSets() {
@@ -165,12 +225,11 @@ addDefaultSetBtn.addEventListener("click", () => {
   renderDefaultSets();
 });
 
-function deleteMovement(id) {
+function confirmDeleteMovement() {
   const data = loadData();
-  data.movements = data.movements.filter((m) => m.id !== id);
+  data.movements = data.movements.filter((m) => m.id !== editingId);
   saveData(data);
-  pendingDeleteId = null;
-  if (editingId === id) resetForm();
+  resetForm();
   render();
 }
 
