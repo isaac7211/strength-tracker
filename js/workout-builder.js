@@ -28,7 +28,7 @@ function newEntry(movementId) {
     defaults && defaults.length > 0
       ? defaults.map((s) => ({ id: uid(), weight: s.weight, reps: s.reps }))
       : [newSet()];
-  return { id: uid(), movementId, sets };
+  return { id: uid(), movementId, checked: false, sets };
 }
 
 function newRound(previousRound) {
@@ -38,6 +38,7 @@ function newRound(previousRound) {
     entries: previousRound.entries.map((entry) => ({
       id: uid(),
       movementId: entry.movementId,
+      checked: false,
       sets: entry.sets.map((set) => ({ id: uid(), weight: set.weight, reps: set.reps })),
     })),
   };
@@ -69,6 +70,7 @@ export function loadAsTemplate(sourceWorkout) {
       entries: round.entries.map((entry) => ({
         id: uid(),
         movementId: entry.movementId,
+        checked: false,
         sets: entry.sets.map((set) => ({ id: uid(), weight: set.weight, reps: set.reps })),
       })),
     })),
@@ -160,6 +162,7 @@ function renderRound(round, roundIndex, movements) {
 function renderEntry(round, entry) {
   const li = document.createElement("li");
   li.className = "entry-item";
+  li.classList.toggle("checked", !!entry.checked);
   li.dataset.entryId = entry.id;
 
   const header = document.createElement("div");
@@ -168,38 +171,57 @@ function renderEntry(round, entry) {
   handle.className = "drag-handle";
   handle.textContent = "⠷";
   attachDragHandlers(handle, li, round, entry);
+
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.className = "entry-checkbox";
+  checkbox.checked = !!entry.checked;
+  checkbox.setAttribute("aria-label", "Mark movement complete");
+  checkbox.addEventListener("change", () => {
+    entry.checked = checkbox.checked;
+    render();
+  });
+
   const name = document.createElement("span");
   name.className = "entry-name";
   name.textContent = movementName(entry.movementId);
-  const removeBtn = document.createElement("button");
-  removeBtn.className = "icon-btn";
-  removeBtn.textContent = "Remove";
-  removeBtn.addEventListener("click", () => {
-    round.entries = round.entries.filter((e) => e.id !== entry.id);
-    render();
-  });
+
   header.appendChild(handle);
+  header.appendChild(checkbox);
   header.appendChild(name);
-  header.appendChild(removeBtn);
+
+  if (!entry.checked) {
+    const addSetBtn = document.createElement("button");
+    addSetBtn.className = "icon-btn";
+    addSetBtn.type = "button";
+    addSetBtn.textContent = "+ Add set";
+    addSetBtn.addEventListener("click", () => {
+      const last = entry.sets[entry.sets.length - 1];
+      entry.sets.push({ id: uid(), weight: last?.weight ?? "", reps: last?.reps ?? "" });
+      render();
+    });
+    header.appendChild(addSetBtn);
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "icon-btn";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("click", () => {
+      round.entries = round.entries.filter((e) => e.id !== entry.id);
+      render();
+    });
+    header.appendChild(removeBtn);
+  }
+
   li.appendChild(header);
 
-  const setsList = document.createElement("div");
-  setsList.className = "sets-list";
-  entry.sets.forEach((set, setIndex) => {
-    setsList.appendChild(renderSetRow(entry, set, setIndex));
-  });
-  li.appendChild(setsList);
-
-  const addSetBtn = document.createElement("button");
-  addSetBtn.className = "icon-btn add-set-btn";
-  addSetBtn.type = "button";
-  addSetBtn.textContent = "+ Add set";
-  addSetBtn.addEventListener("click", () => {
-    const last = entry.sets[entry.sets.length - 1];
-    entry.sets.push({ id: uid(), weight: last?.weight ?? "", reps: last?.reps ?? "" });
-    render();
-  });
-  li.appendChild(addSetBtn);
+  if (!entry.checked) {
+    const setsList = document.createElement("div");
+    setsList.className = "sets-list";
+    entry.sets.forEach((set, setIndex) => {
+      setsList.appendChild(renderSetRow(entry, set, setIndex));
+    });
+    li.appendChild(setsList);
+  }
 
   return li;
 }
@@ -316,8 +338,11 @@ saveBtn.addEventListener("click", () => {
   draft.name = nameField.value.trim() || "Untitled Workout";
   draft.date = datetimeField.value || nowForInput();
 
+  const toSave = structuredClone(draft);
+  toSave.rounds.forEach((r) => r.entries.forEach((e) => delete e.checked));
+
   const data = loadData();
-  data.workouts.push(structuredClone(draft));
+  data.workouts.push(toSave);
   saveData(data);
 
   startBlankDraft();
