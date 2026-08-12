@@ -6,7 +6,6 @@ const roundsContainer = document.getElementById("rounds-container");
 const noMovementsHint = document.getElementById("no-movements-hint");
 const addRoundBtn = document.getElementById("add-round-btn");
 const saveBtn = document.getElementById("save-workout-btn");
-const saveMsg = document.getElementById("workout-save-msg");
 
 let draft = null;
 
@@ -53,7 +52,6 @@ export function startBlankDraft() {
   };
   nameField.value = "";
   datetimeField.value = draft.date;
-  saveMsg.classList.add("hidden");
   render();
 }
 
@@ -77,7 +75,6 @@ export function loadAsTemplate(sourceWorkout) {
   };
   nameField.value = draft.name;
   datetimeField.value = draft.date;
-  saveMsg.classList.add("hidden");
   render();
 }
 
@@ -346,8 +343,7 @@ saveBtn.addEventListener("click", () => {
   saveData(data);
 
   startBlankDraft();
-  saveMsg.textContent = "Workout saved.";
-  saveMsg.classList.remove("hidden");
+  document.dispatchEvent(new CustomEvent("workout:saved", { detail: { id: toSave.id } }));
 });
 
 startBlankDraft();

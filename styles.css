@@ -420,6 +420,7 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 }
 
 .history-item {
+  position: relative;
   width: 100%;
   text-align: left;
   background: var(--surface);
@@ -432,6 +433,25 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 
 .history-item:hover {
   background: var(--surface-2);
+}
+
+.history-item.just-saved {
+  background: rgba(63, 185, 80, 0.12);
+  border-color: rgba(63, 185, 80, 0.4);
+  padding-right: 6rem;
+}
+
+.just-saved-badge {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--success);
+  background: rgba(63, 185, 80, 0.15);
+  border: 1px solid rgba(63, 185, 80, 0.4);
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
 }
 
 .history-item .name {

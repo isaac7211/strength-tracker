@@ -14,6 +14,11 @@ const deleteSection = document.getElementById("history-delete-section");
 
 let currentWorkout = null;
 let deleteState = "idle"; // "idle" | "confirm"
+let justSavedId = null;
+
+export function highlightJustSaved(workoutId) {
+  justSavedId = workoutId;
+}
 
 function formatDate(value) {
   const d = new Date(value);
@@ -43,6 +48,9 @@ export function renderList() {
   const data = loadData();
   const workouts = [...data.workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
 
+  const idToHighlight = justSavedId;
+  justSavedId = null;
+
   list.innerHTML = "";
   emptyState.classList.toggle("hidden", workouts.length > 0);
 
@@ -59,6 +67,15 @@ export function renderList() {
     date.textContent = formatDate(workout.date);
     btn.appendChild(name);
     btn.appendChild(date);
+
+    if (workout.id === idToHighlight) {
+      btn.classList.add("just-saved");
+      const badge = document.createElement("span");
+      badge.className = "just-saved-badge";
+      badge.textContent = "Just saved";
+      btn.appendChild(badge);
+    }
+
     btn.addEventListener("click", () => showDetail(workout.id));
     li.appendChild(btn);
     list.appendChild(li);
