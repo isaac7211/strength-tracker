@@ -33,7 +33,22 @@ body {
 
 .app-header h1 {
   font-size: 1.25rem;
-  margin: 0 0 0.75rem;
+  margin: 0;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.wake-lock-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  opacity: 0.8;
 }
 
 .tabs {
