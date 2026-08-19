@@ -132,6 +132,17 @@ function renderRound(round, roundIndex, movements) {
   });
   card.appendChild(entryList);
 
+  Sortable.create(entryList, {
+    handle: ".drag-handle",
+    animation: 150,
+    onEnd: (evt) => {
+      if (evt.oldIndex === evt.newIndex) return;
+      const [moved] = round.entries.splice(evt.oldIndex, 1);
+      round.entries.splice(evt.newIndex, 0, moved);
+      render();
+    },
+  });
+
   const addEntryRow = document.createElement("div");
   addEntryRow.className = "add-entry-row";
   const select = document.createElement("select");
@@ -160,14 +171,12 @@ function renderEntry(round, entry) {
   const li = document.createElement("li");
   li.className = "entry-item";
   li.classList.toggle("checked", !!entry.checked);
-  li.dataset.entryId = entry.id;
 
   const header = document.createElement("div");
   header.className = "entry-header";
   const handle = document.createElement("span");
   handle.className = "drag-handle";
   handle.textContent = "⠷";
-  attachDragHandlers(handle, li, round, entry);
 
   const checkbox = document.createElement("input");
   checkbox.type = "checkbox";
@@ -221,56 +230,6 @@ function renderEntry(round, entry) {
   }
 
   return li;
-}
-
-// Pointer Events (not native HTML5 drag-and-drop) so reordering works on
-// touch devices, not just mouse.
-function attachDragHandlers(handle, li, round, entry) {
-  handle.addEventListener("pointerdown", (e) => {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
-    li.classList.add("dragging");
-    const ownList = li.closest(".entry-list");
-    let dropTarget = null;
-
-    const onMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      const elAtPoint = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
-      const candidate = elAtPoint ? elAtPoint.closest(".entry-item") : null;
-      if (dropTarget && dropTarget !== candidate) {
-        dropTarget.classList.remove("drag-over");
-        dropTarget = null;
-      }
-      if (candidate && candidate !== li && candidate.closest(".entry-list") === ownList) {
-        candidate.classList.add("drag-over");
-        dropTarget = candidate;
-      }
-    };
-
-    const onUp = () => {
-      handle.releasePointerCapture(e.pointerId);
-      handle.removeEventListener("pointermove", onMove);
-      handle.removeEventListener("pointerup", onUp);
-      handle.removeEventListener("pointercancel", onUp);
-      li.classList.remove("dragging");
-      if (dropTarget) {
-        dropTarget.classList.remove("drag-over");
-        const targetEntryId = dropTarget.dataset.entryId;
-        const fromIndex = round.entries.findIndex((en) => en.id === entry.id);
-        const toIndex = round.entries.findIndex((en) => en.id === targetEntryId);
-        if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-          const [moved] = round.entries.splice(fromIndex, 1);
-          round.entries.splice(toIndex, 0, moved);
-          render();
-        }
-      }
-    };
-
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp);
-    handle.addEventListener("pointercancel", onUp);
-  });
 }
 
 function renderSetRow(entry, set, setIndex) {

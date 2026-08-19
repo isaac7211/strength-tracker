@@ -30,12 +30,10 @@ function render() {
   for (const movement of data.movements) {
     const li = document.createElement("li");
     li.className = "movement-item";
-    li.dataset.movementId = movement.id;
 
     const handle = document.createElement("span");
     handle.className = "drag-handle";
     handle.textContent = "⠷";
-    attachDragHandlers(handle, li, movement.id);
 
     const info = document.createElement("div");
     info.className = "info";
@@ -66,57 +64,18 @@ function render() {
   }
 }
 
-// Pointer Events (not native HTML5 drag-and-drop) so reordering works on
-// touch devices, not just mouse. Mirrors the drag logic used for movement
-// entries within a workout round.
-function attachDragHandlers(handle, li, movementId) {
-  handle.addEventListener("pointerdown", (e) => {
-    if (e.pointerType === "mouse" && e.button !== 0) return;
-    e.preventDefault();
-    handle.setPointerCapture(e.pointerId);
-    li.classList.add("dragging");
-    let dropTarget = null;
-
-    const onMove = (moveEvent) => {
-      moveEvent.preventDefault();
-      const elAtPoint = document.elementFromPoint(moveEvent.clientX, moveEvent.clientY);
-      const candidate = elAtPoint ? elAtPoint.closest(".movement-item") : null;
-      if (dropTarget && dropTarget !== candidate) {
-        dropTarget.classList.remove("drag-over");
-        dropTarget = null;
-      }
-      if (candidate && candidate !== li && candidate.closest(".movement-list") === list) {
-        candidate.classList.add("drag-over");
-        dropTarget = candidate;
-      }
-    };
-
-    const onUp = () => {
-      handle.releasePointerCapture(e.pointerId);
-      handle.removeEventListener("pointermove", onMove);
-      handle.removeEventListener("pointerup", onUp);
-      handle.removeEventListener("pointercancel", onUp);
-      li.classList.remove("dragging");
-      if (dropTarget) {
-        dropTarget.classList.remove("drag-over");
-        const targetId = dropTarget.dataset.movementId;
-        const data = loadData();
-        const fromIndex = data.movements.findIndex((m) => m.id === movementId);
-        const toIndex = data.movements.findIndex((m) => m.id === targetId);
-        if (fromIndex !== -1 && toIndex !== -1 && fromIndex !== toIndex) {
-          const [moved] = data.movements.splice(fromIndex, 1);
-          data.movements.splice(toIndex, 0, moved);
-          saveData(data);
-          render();
-        }
-      }
-    };
-
-    handle.addEventListener("pointermove", onMove);
-    handle.addEventListener("pointerup", onUp);
-    handle.addEventListener("pointercancel", onUp);
-  });
-}
+Sortable.create(list, {
+  handle: ".drag-handle",
+  animation: 150,
+  onEnd: (evt) => {
+    if (evt.oldIndex === evt.newIndex) return;
+    const data = loadData();
+    const [moved] = data.movements.splice(evt.oldIndex, 1);
+    data.movements.splice(evt.newIndex, 0, moved);
+    saveData(data);
+    render();
+  },
+});
 
 function startEdit(id) {
   const data = loadData();
