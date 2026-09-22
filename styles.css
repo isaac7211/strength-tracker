@@ -377,6 +377,14 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
   font-weight: 600;
 }
 
+.entry-notes {
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  margin: 0 0 0.6rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .sets-list {
   display: flex;
   flex-direction: column;
@@ -385,7 +393,7 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 
 .set-row {
   display: grid;
-  grid-template-columns: auto 1fr 1fr auto;
+  grid-template-columns: auto 1fr 1fr 1fr auto;
   gap: 0.4rem;
   align-items: center;
 }

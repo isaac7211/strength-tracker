@@ -88,6 +88,7 @@ function startEdit(id) {
   currentDefaultSets = (movement.defaultSets ?? []).map((s) => ({
     id: uid(),
     weight: s.weight,
+    seconds: s.seconds ?? "",
     reps: s.reps,
   }));
   renderDefaultSets();
@@ -213,6 +214,15 @@ function renderDefaultSetRow(set, index) {
     set.weight = weightInput.value;
   });
 
+  const secondsInput = document.createElement("input");
+  secondsInput.type = "number";
+  secondsInput.inputMode = "numeric";
+  secondsInput.placeholder = "Seconds";
+  secondsInput.value = set.seconds ?? "";
+  secondsInput.addEventListener("input", () => {
+    set.seconds = secondsInput.value;
+  });
+
   const repsInput = document.createElement("input");
   repsInput.type = "number";
   repsInput.inputMode = "numeric";
@@ -232,6 +242,7 @@ function renderDefaultSetRow(set, index) {
   });
 
   row.appendChild(weightInput);
+  row.appendChild(secondsInput);
   row.appendChild(repsInput);
   row.appendChild(removeBtn);
   return row;
@@ -239,7 +250,12 @@ function renderDefaultSetRow(set, index) {
 
 addDefaultSetBtn.addEventListener("click", () => {
   const last = currentDefaultSets[currentDefaultSets.length - 1];
-  currentDefaultSets.push({ id: uid(), weight: last?.weight ?? "", reps: last?.reps ?? "" });
+  currentDefaultSets.push({
+    id: uid(),
+    weight: last?.weight ?? "",
+    seconds: last?.seconds ?? "",
+    reps: last?.reps ?? "",
+  });
   renderDefaultSets();
 });
 

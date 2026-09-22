@@ -33,15 +33,21 @@ function formatDate(value) {
   });
 }
 
-function movementName(movements, movementId) {
-  const movement = movements.find((m) => m.id === movementId);
-  return movement ? movement.name : "(deleted movement)";
+function getMovement(movements, movementId) {
+  return movements.find((m) => m.id === movementId) ?? null;
+}
+
+function hasValue(v) {
+  return v !== "" && v != null;
 }
 
 function setLine(set, index) {
-  const weight = set.weight !== "" && set.weight != null ? `${set.weight}` : "bodyweight";
-  const reps = set.reps !== "" && set.reps != null ? set.reps : "?";
-  return `Set ${index + 1}: ${weight} × ${reps} reps`;
+  const parts = [];
+  if (hasValue(set.weight)) parts.push(`${set.weight}`);
+  if (hasValue(set.seconds)) parts.push(`${set.seconds}s`);
+  if (hasValue(set.reps)) parts.push(`${set.reps} reps`);
+  const detail = parts.length > 0 ? parts.join(" × ") : "—";
+  return `Set ${index + 1}: ${detail}`;
 }
 
 export function renderList() {
@@ -104,10 +110,18 @@ function showDetail(workoutId) {
     round.entries.forEach((entry) => {
       const entryEl = document.createElement("div");
       entryEl.className = "detail-entry";
+      const movement = getMovement(data.movements, entry.movementId);
       const nameEl = document.createElement("span");
       nameEl.className = "entry-name";
-      nameEl.textContent = movementName(data.movements, entry.movementId);
+      nameEl.textContent = movement ? movement.name : "(deleted movement)";
       entryEl.appendChild(nameEl);
+
+      if (movement?.notes) {
+        const notes = document.createElement("p");
+        notes.className = "entry-notes";
+        notes.textContent = movement.notes;
+        entryEl.appendChild(notes);
+      }
 
       entry.sets.forEach((set, setIndex) => {
         const line = document.createElement("p");

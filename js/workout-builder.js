@@ -16,17 +16,18 @@ function nowForInput() {
 }
 
 function newSet() {
-  return { id: uid(), weight: "", reps: "" };
+  return { id: uid(), weight: "", seconds: "", reps: "" };
+}
+
+function cloneSet(set) {
+  return { id: uid(), weight: set.weight, seconds: set.seconds ?? "", reps: set.reps };
 }
 
 function newEntry(movementId) {
   const data = loadData();
   const movement = data.movements.find((m) => m.id === movementId);
   const defaults = movement?.defaultSets;
-  const sets =
-    defaults && defaults.length > 0
-      ? defaults.map((s) => ({ id: uid(), weight: s.weight, reps: s.reps }))
-      : [newSet()];
+  const sets = defaults && defaults.length > 0 ? defaults.map(cloneSet) : [newSet()];
   return { id: uid(), movementId, checked: false, sets };
 }
 
@@ -38,7 +39,7 @@ function newRound(previousRound) {
       id: uid(),
       movementId: entry.movementId,
       checked: false,
-      sets: entry.sets.map((set) => ({ id: uid(), weight: set.weight, reps: set.reps })),
+      sets: entry.sets.map(cloneSet),
     })),
   };
 }
@@ -69,7 +70,7 @@ export function loadAsTemplate(sourceWorkout) {
         id: uid(),
         movementId: entry.movementId,
         checked: false,
-        sets: entry.sets.map((set) => ({ id: uid(), weight: set.weight, reps: set.reps })),
+        sets: entry.sets.map(cloneSet),
       })),
     })),
   };
@@ -78,9 +79,13 @@ export function loadAsTemplate(sourceWorkout) {
   render();
 }
 
-function movementName(movementId) {
+function getMovement(movementId) {
   const data = loadData();
-  const movement = data.movements.find((m) => m.id === movementId);
+  return data.movements.find((m) => m.id === movementId) ?? null;
+}
+
+function movementName(movementId) {
+  const movement = getMovement(movementId);
   return movement ? movement.name : "(deleted movement)";
 }
 
@@ -203,7 +208,7 @@ function renderEntry(round, entry) {
     addSetBtn.textContent = "+ Add set";
     addSetBtn.addEventListener("click", () => {
       const last = entry.sets[entry.sets.length - 1];
-      entry.sets.push({ id: uid(), weight: last?.weight ?? "", reps: last?.reps ?? "" });
+      entry.sets.push(cloneSet(last ?? newSet()));
       render();
     });
     header.appendChild(addSetBtn);
@@ -221,6 +226,14 @@ function renderEntry(round, entry) {
   li.appendChild(header);
 
   if (!entry.checked) {
+    const movement = getMovement(entry.movementId);
+    if (movement?.notes) {
+      const notes = document.createElement("p");
+      notes.className = "entry-notes";
+      notes.textContent = movement.notes;
+      li.appendChild(notes);
+    }
+
     const setsList = document.createElement("div");
     setsList.className = "sets-list";
     entry.sets.forEach((set, setIndex) => {
@@ -250,6 +263,15 @@ function renderSetRow(entry, set, setIndex) {
     set.weight = weightInput.value;
   });
 
+  const secondsInput = document.createElement("input");
+  secondsInput.type = "number";
+  secondsInput.inputMode = "numeric";
+  secondsInput.placeholder = "Seconds";
+  secondsInput.value = set.seconds ?? "";
+  secondsInput.addEventListener("input", () => {
+    set.seconds = secondsInput.value;
+  });
+
   const repsInput = document.createElement("input");
   repsInput.type = "number";
   repsInput.inputMode = "numeric";
@@ -271,6 +293,7 @@ function renderSetRow(entry, set, setIndex) {
   });
 
   row.appendChild(weightInput);
+  row.appendChild(secondsInput);
   row.appendChild(repsInput);
   row.appendChild(removeBtn);
   return row;
