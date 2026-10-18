@@ -372,9 +372,39 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
   white-space: nowrap;
 }
 
-#rounds-container .set-row input[type="number"] {
+#rounds-container .set-row input[type="number"],
+#rounds-container .set-row input[type="text"],
+#rounds-container .set-row select {
   font-size: 1.2rem;
   font-weight: 600;
+}
+
+.weight-field {
+  display: flex;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.weight-field input {
+  flex: 1;
+  min-width: 0;
+}
+
+.weight-field select {
+  width: auto;
+  flex-shrink: 0;
+  padding-left: 0.4rem;
+  padding-right: 0.2rem;
+}
+
+.round-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.round-card.complete {
+  background: rgba(63, 185, 80, 0.08);
+  border-color: rgba(63, 185, 80, 0.35);
 }
 
 .entry-notes {
@@ -393,7 +423,7 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 
 .set-row {
   display: grid;
-  grid-template-columns: auto 1fr 1fr 1fr auto;
+  grid-template-columns: auto 2fr 1fr 1fr auto;
   gap: 0.4rem;
   align-items: center;
 }

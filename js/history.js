@@ -43,7 +43,7 @@ function hasValue(v) {
 
 function setLine(set, index) {
   const parts = [];
-  if (hasValue(set.weight)) parts.push(`${set.weight}`);
+  if (hasValue(set.weight)) parts.push(set.unit ? `${set.weight} ${set.unit}` : `${set.weight}`);
   if (hasValue(set.seconds)) parts.push(`${set.seconds}s`);
   if (hasValue(set.reps)) parts.push(`${set.reps} reps`);
   const detail = parts.length > 0 ? parts.join(" × ") : "—";

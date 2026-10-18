@@ -1,4 +1,5 @@
 import { loadData, saveData, uid } from "./storage.js";
+import { createWeightField } from "./weight-field.js";
 
 let editingId = null;
 let currentDefaultSets = [];
@@ -88,6 +89,7 @@ function startEdit(id) {
   currentDefaultSets = (movement.defaultSets ?? []).map((s) => ({
     id: uid(),
     weight: s.weight,
+    unit: s.unit ?? "",
     seconds: s.seconds ?? "",
     reps: s.reps,
   }));
@@ -205,19 +207,13 @@ function renderDefaultSetRow(set, index) {
   label.textContent = `Set ${index + 1}`;
   row.appendChild(label);
 
-  const weightInput = document.createElement("input");
-  weightInput.type = "number";
-  weightInput.inputMode = "decimal";
-  weightInput.placeholder = "Weight";
-  weightInput.value = set.weight;
-  weightInput.addEventListener("input", () => {
-    set.weight = weightInput.value;
-  });
+  const weightField = createWeightField(set);
 
   const secondsInput = document.createElement("input");
   secondsInput.type = "number";
   secondsInput.inputMode = "numeric";
-  secondsInput.placeholder = "Seconds";
+  secondsInput.placeholder = "Sec";
+  secondsInput.setAttribute("aria-label", "Seconds");
   secondsInput.value = set.seconds ?? "";
   secondsInput.addEventListener("input", () => {
     set.seconds = secondsInput.value;
@@ -241,7 +237,7 @@ function renderDefaultSetRow(set, index) {
     renderDefaultSets();
   });
 
-  row.appendChild(weightInput);
+  row.appendChild(weightField);
   row.appendChild(secondsInput);
   row.appendChild(repsInput);
   row.appendChild(removeBtn);
@@ -253,6 +249,7 @@ addDefaultSetBtn.addEventListener("click", () => {
   currentDefaultSets.push({
     id: uid(),
     weight: last?.weight ?? "",
+    unit: last?.unit ?? "",
     seconds: last?.seconds ?? "",
     reps: last?.reps ?? "",
   });

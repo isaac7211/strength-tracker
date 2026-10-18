@@ -1,4 +1,5 @@
 import { loadData, saveData, uid } from "./storage.js";
+import { createWeightField } from "./weight-field.js";
 
 const nameField = document.getElementById("workout-name");
 const datetimeField = document.getElementById("workout-datetime");
@@ -16,11 +17,17 @@ function nowForInput() {
 }
 
 function newSet() {
-  return { id: uid(), weight: "", seconds: "", reps: "" };
+  return { id: uid(), weight: "", unit: "", seconds: "", reps: "" };
 }
 
 function cloneSet(set) {
-  return { id: uid(), weight: set.weight, seconds: set.seconds ?? "", reps: set.reps };
+  return {
+    id: uid(),
+    weight: set.weight,
+    unit: set.unit ?? "",
+    seconds: set.seconds ?? "",
+    reps: set.reps,
+  };
 }
 
 function newEntry(movementId) {
@@ -112,11 +119,31 @@ function renderRound(round, roundIndex, movements) {
   const card = document.createElement("div");
   card.className = "round-card";
 
+  const allChecked = round.entries.length > 0 && round.entries.every((e) => e.checked);
+  card.classList.toggle("complete", allChecked);
+
   const header = document.createElement("div");
   header.className = "round-header";
   const h3 = document.createElement("h3");
   h3.textContent = `Round ${roundIndex + 1}`;
   header.appendChild(h3);
+
+  const actions = document.createElement("div");
+  actions.className = "round-actions";
+
+  if (round.entries.length > 0) {
+    const checkAllBtn = document.createElement("button");
+    checkAllBtn.className = "icon-btn";
+    checkAllBtn.type = "button";
+    checkAllBtn.textContent = allChecked ? "Uncheck all" : "Check all";
+    checkAllBtn.addEventListener("click", () => {
+      round.entries.forEach((e) => {
+        e.checked = !allChecked;
+      });
+      render();
+    });
+    actions.appendChild(checkAllBtn);
+  }
 
   if (draft.rounds.length > 1) {
     const removeBtn = document.createElement("button");
@@ -126,8 +153,9 @@ function renderRound(round, roundIndex, movements) {
       draft.rounds = draft.rounds.filter((r) => r.id !== round.id);
       render();
     });
-    header.appendChild(removeBtn);
+    actions.appendChild(removeBtn);
   }
+  header.appendChild(actions);
   card.appendChild(header);
 
   const entryList = document.createElement("ul");
@@ -254,19 +282,13 @@ function renderSetRow(entry, set, setIndex) {
   label.textContent = `Set ${setIndex + 1}`;
   row.appendChild(label);
 
-  const weightInput = document.createElement("input");
-  weightInput.type = "number";
-  weightInput.inputMode = "decimal";
-  weightInput.placeholder = "Weight";
-  weightInput.value = set.weight;
-  weightInput.addEventListener("input", () => {
-    set.weight = weightInput.value;
-  });
+  const weightField = createWeightField(set);
 
   const secondsInput = document.createElement("input");
   secondsInput.type = "number";
   secondsInput.inputMode = "numeric";
-  secondsInput.placeholder = "Seconds";
+  secondsInput.placeholder = "Sec";
+  secondsInput.setAttribute("aria-label", "Seconds");
   secondsInput.value = set.seconds ?? "";
   secondsInput.addEventListener("input", () => {
     set.seconds = secondsInput.value;
@@ -292,7 +314,7 @@ function renderSetRow(entry, set, setIndex) {
     render();
   });
 
-  row.appendChild(weightInput);
+  row.appendChild(weightField);
   row.appendChild(secondsInput);
   row.appendChild(repsInput);
   row.appendChild(removeBtn);
