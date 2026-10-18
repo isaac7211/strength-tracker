@@ -261,14 +261,14 @@ function renderEntry(round, entry) {
       notes.textContent = movement.notes;
       li.appendChild(notes);
     }
-
-    const setsList = document.createElement("div");
-    setsList.className = "sets-list";
-    entry.sets.forEach((set, setIndex) => {
-      setsList.appendChild(renderSetRow(entry, set, setIndex));
-    });
-    li.appendChild(setsList);
   }
+
+  const setsList = document.createElement("div");
+  setsList.className = "sets-list";
+  entry.sets.forEach((set, setIndex) => {
+    setsList.appendChild(renderSetRow(entry, set, setIndex));
+  });
+  li.appendChild(setsList);
 
   return li;
 }

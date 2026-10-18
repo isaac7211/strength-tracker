@@ -320,10 +320,6 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
   margin-bottom: 0.5rem;
 }
 
-.entry-item.checked .entry-header {
-  margin-bottom: 0;
-}
-
 .entry-header .icon-btn {
   flex-shrink: 0;
   white-space: nowrap;
