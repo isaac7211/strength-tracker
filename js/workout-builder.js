@@ -128,23 +128,6 @@ function renderRound(round, roundIndex, movements) {
   h3.textContent = `Round ${roundIndex + 1}`;
   header.appendChild(h3);
 
-  const actions = document.createElement("div");
-  actions.className = "round-actions";
-
-  if (round.entries.length > 0) {
-    const checkAllBtn = document.createElement("button");
-    checkAllBtn.className = "icon-btn";
-    checkAllBtn.type = "button";
-    checkAllBtn.textContent = allChecked ? "Uncheck all" : "Check all";
-    checkAllBtn.addEventListener("click", () => {
-      round.entries.forEach((e) => {
-        e.checked = !allChecked;
-      });
-      render();
-    });
-    actions.appendChild(checkAllBtn);
-  }
-
   if (draft.rounds.length > 1) {
     const removeBtn = document.createElement("button");
     removeBtn.className = "icon-btn";
@@ -153,9 +136,8 @@ function renderRound(round, roundIndex, movements) {
       draft.rounds = draft.rounds.filter((r) => r.id !== round.id);
       render();
     });
-    actions.appendChild(removeBtn);
+    header.appendChild(removeBtn);
   }
-  header.appendChild(actions);
   card.appendChild(header);
 
   const entryList = document.createElement("ul");
@@ -196,6 +178,23 @@ function renderRound(round, roundIndex, movements) {
   });
   addEntryRow.appendChild(select);
   card.appendChild(addEntryRow);
+
+  if (round.entries.length > 0) {
+    const footer = document.createElement("div");
+    footer.className = "round-footer";
+    const checkAllBtn = document.createElement("button");
+    checkAllBtn.className = "secondary";
+    checkAllBtn.type = "button";
+    checkAllBtn.textContent = allChecked ? "Uncheck all" : "Check all";
+    checkAllBtn.addEventListener("click", () => {
+      round.entries.forEach((e) => {
+        e.checked = !allChecked;
+      });
+      render();
+    });
+    footer.appendChild(checkAllBtn);
+    card.appendChild(footer);
+  }
 
   return card;
 }

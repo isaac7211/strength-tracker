@@ -20,7 +20,7 @@ export function createWeightField(set) {
   for (const unit of UNITS) {
     const opt = document.createElement("option");
     opt.value = unit;
-    opt.textContent = unit || "—";
+    opt.textContent = unit;
     select.appendChild(opt);
   }
   select.value = UNITS.includes(set.unit) ? set.unit : "";

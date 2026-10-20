@@ -384,6 +384,8 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 .weight-field input {
   flex: 1;
   min-width: 0;
+  padding-left: 0.5rem;
+  padding-right: 0.4rem;
 }
 
 .weight-field select {
@@ -393,9 +395,10 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
   padding-right: 0.2rem;
 }
 
-.round-actions {
+.round-footer {
   display: flex;
-  gap: 0.4rem;
+  justify-content: flex-end;
+  margin-top: 0.7rem;
 }
 
 .round-card.complete {
@@ -419,9 +422,39 @@ button.icon-btn:hover { background: var(--surface-2); color: var(--text); }
 
 .set-row {
   display: grid;
-  grid-template-columns: auto 2fr 1fr 1fr auto;
-  gap: 0.4rem;
+  grid-template-columns: auto minmax(8.5rem, 10.5rem) minmax(3.2rem, 4.5rem) minmax(3.2rem, 4.5rem) auto;
+  justify-content: start;
+  gap: 0.4rem 0.9rem;
   align-items: center;
+}
+
+.set-row input[type="number"] {
+  padding-left: 0.4rem;
+  padding-right: 0.4rem;
+  text-align: center;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.set-row input[type="number"]::-webkit-inner-spin-button,
+.set-row input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .set-row {
+    grid-template-columns: auto 1fr 1fr auto;
+    gap: 0.4rem 0.6rem;
+  }
+
+  .set-row > .weight-field {
+    grid-column: 2 / -1;
+  }
+
+  .set-row > .weight-field + input {
+    grid-column: 2;
+  }
 }
 
 .set-row .set-label {
